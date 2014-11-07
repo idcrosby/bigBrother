@@ -1,0 +1,31 @@
+{
+	"Resources":[
+		{
+			"name":"Example resource",
+			"url":"http://example.com",
+			"oauthProtected":false,
+			"key":"fakeKey",
+			"keyLocation":"Header",
+			"keyParamName":"api_key"
+		},
+		{
+			"name":"Example Oauth Resource",
+			"url":"http://example.com",
+			"oauthProtected":true,
+			"oauth": {
+				"url":"http://example.com/token",
+				"grantType":"client_credentials",
+				"username":"fakeUser",
+				"password":"fakePassword"
+			}
+		}
+	],
+	"oauth": {
+		"url":"http://example.com/token",
+		"grantType":"client_credentials",
+		"username":"fakeUser",
+		"password":"fakePassword"
+	},
+	"runOnce":true,
+	"period":0
+}

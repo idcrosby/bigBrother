@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var configuration Configuration
@@ -27,6 +28,27 @@ func main() {
 	err = decoder.Decode(&configuration)
 	check(err)
 
+	if configuration.RunOnce {
+		checkAllResouces()
+	} else {
+		ticker := time.NewTicker(time.Duration(configuration.Period) * time.Second)
+		quit := make(chan struct{})
+		go func(){
+			for {
+				select {
+				case <- ticker.C:
+					checkAllResouces()
+				case <- quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+	}
+	// 
+}
+
+func checkAllResouces() {
 	// For Each endpoint make API call	
 	for _, resource := range configuration.Resources {
 		ok := checkResource(resource)
@@ -36,7 +58,6 @@ func main() {
 			fmt.Printf("Resource %s is not ok\n", resource.Name)
 		}
 	}
-	// 
 }
 
 func checkResource(resource Resource) bool {
@@ -48,6 +69,13 @@ func checkResource(resource Resource) bool {
 		token := GetToken()
 		req.Header.Add("Authorization", "Bearer " + token)
 	} else {
+
+		switch resource.KeyLocation {
+		case "Header":
+			req.Header.Add(resource.KeyParamName, resource.Key)
+		case "Query":
+			req.URL.Query().Add(resource.KeyParamName, resource.Key)
+		}
 		// TODO ..
 	}
 
@@ -111,6 +139,7 @@ type Resource struct {
 	Url string
 	Key string
 	KeyLocation string
+	KeyParamName string
 	OauthProtected bool
 	Oauth struct {
 		Url string
@@ -120,7 +149,7 @@ type Resource struct {
 	}
 }
 
-// Generisize this
+// Genericize this
 type OAuthToken struct {
 	TokenType string		`json:"token_type"`
 	Mapi string				`json:"mapi"`
